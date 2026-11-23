@@ -1,0 +1,85 @@
+# =============================================================================
+# GlassGrab — Extract & Build Workflow
+#
+# How to use this file (3 simple steps, no manual unzipping needed):
+#   1. Create an empty GitHub repository, add this file at:
+#      .github/workflows/extract-and-build.yml
+#   2. Upload GlassGrab.zip directly to the root of your repository via
+#      GitHub's "Add file -> Upload files" button and commit.
+#   3. Open the Actions tab, wait for this run to finish, and download
+#      the APK from the "GlassGrab-debug-apk" artifact at the bottom.
+# =============================================================================
+
+name: Extract & Build GlassGrab
+
+on:
+  push:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  extract:
+    name: Extract GlassGrab.zip (if present)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Unzip GlassGrab.zip and commit project files
+        if: hashFiles('GlassGrab.zip') != ''
+        run: |
+          unzip -o GlassGrab.zip -d .
+          rm -f GlassGrab.zip
+          chmod +x gradlew || true
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if ! git diff --cached --quiet; then
+            git commit -m "Add GlassGrab project"
+            git push
+          fi
+
+  build:
+    name: Build Debug APK
+    needs: extract
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout latest commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Set up Gradle & caching
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.6.0'
+
+      - name: Ensure Gradle wrapper is present
+        run: |
+          if [ ! -f gradle/wrapper/gradle-wrapper.jar ]; then
+            gradle wrapper --gradle-version 9.6.0 --no-daemon
+          fi
+          chmod +x gradlew
+
+      - name: Build Debug APK
+        run: ./gradlew assembleDebug --stacktrace --no-daemon
+
+      - name: Upload GlassGrab Debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: GlassGrab-debug-apk
+          path: app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
