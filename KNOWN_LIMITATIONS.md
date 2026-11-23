@@ -1,0 +1,7 @@
+# Known Limitations
+
+1. **Gradle Wrapper JAR generated in CI**: Because this project was packaged in an offline environment without Maven downloads, `gradle/wrapper/gradle-wrapper.jar` is not bundled inside `GlassGrab.zip`. The companion `extract-and-build.yml` workflow automatically runs `gradle wrapper --gradle-version 9.6.0` before building.
+2. **Parallel download concurrency enforcement**: The parallel download limit (1–5) is persisted in Proto DataStore and surfaced in Settings, while WorkManager schedules individual unique workers; adding a custom `Semaphore` or work-queue coordinator in `DownloadRepositoryImpl` will enforce strict simultaneous execution caps across all OEMs.
+3. **Live byte-rate speed estimation**: `DownloadWorker` reports real percentage progress and ETA from `yt-dlp` callbacks; instantaneous MB/s speed parsing from yt-dlp stdout lines is currently simplified to focus on reliable progress and ETA updates.
+4. **Roborazzi golden snapshots**: `GlassComponentsScreenshotTest` is configured and ready to record golden images (`./gradlew :core:design:recordRoborazziDebug`) on the first CI/local run with Android SDK available.
+5. **Private / login-gated posts**: GlassGrab intentionally ships with zero accounts and no embedded browser cookie harvesting, so private or age-gated posts that require authentication return a friendly error instead of requesting credentials.

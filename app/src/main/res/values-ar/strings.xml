@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">غلاس غراب</string>
+    <string name="nav_home">الرئيسية</string>
+    <string name="nav_downloads">التنزيلات</string>
+    <string name="nav_library">المكتبة</string>
+    <string name="nav_settings">الإعدادات</string>
+    <string name="rights_notice">يرجى احترام حقوق مالكي المحتوى. لا يتجاوز التطبيق حماية DRM.</string>
+</resources>
